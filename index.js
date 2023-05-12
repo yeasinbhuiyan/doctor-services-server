@@ -30,6 +30,7 @@ async function run() {
         await client.connect();
         const database = client.db("doctorServices");
         const servicesCollection = database.collection("services");
+        const bookingsCollection = database.collection("bookings");
 
         app.get('/services', async (req, res) => {
 
@@ -52,6 +53,52 @@ async function run() {
         })
 
 
+
+        app.get('/bookings', async (req, res) => {
+            let query = {}
+            if (req.query) {
+                query = { email: req.query.email }
+            }
+
+            const findBookings = bookingsCollection.find(query)
+            const result = await findBookings.toArray(findBookings)
+
+            res.send(result)
+        })
+
+
+        app.delete('/remove/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const result = await bookingsCollection.deleteOne(filter)
+            res.send(result)
+        })
+
+
+        app.patch('/paid/:id', async (req, res) => {
+            const id = req.params.id
+            const updatedData = req.body
+            const filter = { _id: new ObjectId(id) }
+            const updatedStatus = {
+                $set: {
+                    status: updatedData.status
+                }
+            }
+
+            const result = await bookingsCollection.updateOne(filter, updatedStatus)
+            res.send(result)
+        })
+
+
+
+
+
+        app.post('/bookings', async (req, res) => {
+            const bookings = req.body
+            // console.log(bookings)
+            const result = await bookingsCollection.insertOne(bookings)
+            res.send(result)
+        })
 
 
 
